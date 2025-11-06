@@ -12,18 +12,21 @@ This is a Computer Science student project to create a simple platformer game us
 
 🚧 **Work in Progress**
 
-### Completed Features (Commit 1)
+### Completed Features (Commit 2)
 - ✅ Basic HTML5 canvas setup (800x600)
 - ✅ Game loop using `requestAnimationFrame()`
-- ✅ Static player rendering (green square)
+- ✅ Player rendering (green square)
 - ✅ Ground rendering
 - ✅ Basic UI display
+- ✅ **Keyboard controls (Arrow Keys + WASD)**
+- ✅ **Left/right player movement**
+- ✅ **Collision detection with canvas edges**
 
 ### To Do
-- [ ] Player movement controls
 - [ ] Jumping mechanics
+- [ ] Gravity implementation
 - [ ] Enemy AI
-- [ ] Collision detection
+- [ ] Collision detection with enemies
 - [ ] Sound effects
 - [ ] Scoring system
 - [ ] Multiple levels/waves
@@ -32,7 +35,7 @@ This is a Computer Science student project to create a simple platformer game us
 
 1. Clone this repository
 2. Open `index.html` in a web browser
-3. That's it! No build process needed.
+3. Use **Arrow Keys** or **WASD** to move the player left and right
 
 ## Project Structure
 
@@ -54,11 +57,21 @@ flat-heroes-game/
 
 ## Controls
 
-*Controls will be added in future commits*
+- **Arrow Left / A** - Move left
+- **Arrow Right / D** - Move right
+
+*More controls will be added as development continues*
 
 ## Development Log
 
-### October 23-26, 2025
+### December 3-4, 2024
+- Added keyboard event listeners
+- Implemented basic left/right movement
+- Added boundary collision (player can't leave canvas)
+- Player now responds to both Arrow keys and WASD
+- Added controls hint on screen
+
+### December 1-2, 2024
 - Initial project setup
 - Created basic canvas and game loop
 - Added static player square
@@ -67,11 +80,12 @@ flat-heroes-game/
 ## Resources
 
 - [MDN Canvas API Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
+- [MDN Keyboard Events](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent)
 - HTML5 Apps and Games course (w3cx.org)
 
 ## Author
 
-CHENIK ANAS
+Chenik Anas
 Computer Science Student
 Ubinet Master 2 - DS4H
 
