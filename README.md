@@ -12,19 +12,23 @@ This is a Computer Science student project to create a simple platformer game us
 
 🚧 **Work in Progress**
 
-### Completed Features (Commit 2)
+### Completed Features (Commit 3)
 - ✅ Basic HTML5 canvas setup (800x600)
 - ✅ Game loop using `requestAnimationFrame()`
 - ✅ Player rendering (green square)
 - ✅ Ground rendering
 - ✅ Basic UI display
-- ✅ **Keyboard controls (Arrow Keys + WASD)**
-- ✅ **Left/right player movement**
-- ✅ **Collision detection with canvas edges**
+- ✅ Keyboard controls (Arrow Keys + WASD)
+- ✅ Left/right player movement
+- ✅ Collision detection with canvas edges
+- ✅ **Gravity implementation**
+- ✅ **Jump mechanics**
+- ✅ **Ground collision detection**
+- ✅ **Player falls and lands properly**
 
 ### To Do
-- [ ] Jumping mechanics
-- [ ] Gravity implementation
+- [ ] Better physics with velocity and acceleration
+- [ ] Platforms to jump on
 - [ ] Enemy AI
 - [ ] Collision detection with enemies
 - [ ] Sound effects
@@ -35,7 +39,8 @@ This is a Computer Science student project to create a simple platformer game us
 
 1. Clone this repository
 2. Open `index.html` in a web browser
-3. Use **Arrow Keys** or **WASD** to move the player left and right
+3. Use **Arrow Keys** or **WASD** to move
+4. Press **Space**, **W**, or **Up Arrow** to jump
 
 ## Project Structure
 
@@ -59,29 +64,23 @@ flat-heroes-game/
 
 - **Arrow Left / A** - Move left
 - **Arrow Right / D** - Move right
+- **Space / W / Up Arrow** - Jump
 
-*More controls will be added as development continues*
+## Game Mechanics
 
-## Development Log
+### Physics
+- **Gravity**: 0.5 (pulls player down)
+- **Jump Power**: -12 (initial upward velocity)
+- **Horizontal Speed**: 5 pixels per frame
+- Player can only jump when on the ground
 
-### December 3-4, 2024
-- Added keyboard event listeners
-- Implemented basic left/right movement
-- Added boundary collision (player can't leave canvas)
-- Player now responds to both Arrow keys and WASD
-- Added controls hint on screen
-
-### December 1-2, 2024
-- Initial project setup
-- Created basic canvas and game loop
-- Added static player square
-- Set up project structure
 
 ## Resources
 
 - [MDN Canvas API Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
 - [MDN Keyboard Events](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent)
 - HTML5 Apps and Games course (w3cx.org)
+- Game physics tutorials for gravity implementation
 
 ## Author
 
@@ -92,3 +91,4 @@ Ubinet Master 2 - DS4H
 ## License
 
 This is a student project for educational purposes.
+
