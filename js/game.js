@@ -1,4 +1,4 @@
-// Flat Heroes Game - Gravity and Jumping
+// Flat Heroes Game - Vector Physics Implementation
 // Get canvas and context
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -7,22 +7,23 @@ const ctx = canvas.getContext('2d');
 canvas.width = 800;
 canvas.height = 600;
 
-// Player object
+// Player object with vector-based physics
 const player = {
-    x: 400,
-    y: 300,
+    pos: new Vector2D(400, 300),  // Position vector
+    vel: new Vector2D(0, 0),      // Velocity vector
+    acc: new Vector2D(0, 0),      // Acceleration vector
     size: 20,
     color: '#00ff88',
-    speedX: 5,  // Horizontal speed
-    velocityY: 0,  // Vertical velocity
-    jumpPower: -12,  // Jump strength
-    gravity: 0.5,  // Gravity force
-    onGround: false  // Is player on ground?
+    speed: 0.8,        // Acceleration force
+    maxSpeed: 6,       // Maximum velocity
+    jumpForce: -15,    // Jump strength
+    gravity: 0.6,      // Gravity force
+    onGround: false
 };
 
 // Game variables
 let score = 0;
-const groundY = canvas.height - 50;  // Ground position
+const groundY = canvas.height - 50;
 
 // Keyboard state
 const keys = {};
@@ -30,8 +31,6 @@ const keys = {};
 // Keyboard event listeners
 window.addEventListener('keydown', function(e) {
     keys[e.key] = true;
-    
-    // Prevent arrow keys from scrolling the page
     if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
         e.preventDefault();
     }
@@ -41,55 +40,74 @@ window.addEventListener('keyup', function(e) {
     keys[e.key] = false;
 });
 
-// Update player position and physics
+// Apply force to player (F = ma)
+function applyForce(force) {
+    player.acc = player.acc.add(force);
+}
+
+// Update player physics
 function updatePlayer() {
-    // Horizontal movement
+    // Horizontal movement - apply forces
     if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
-        player.x -= player.speedX;
+        applyForce(new Vector2D(-player.speed, 0));
     }
     if (keys['ArrowRight'] || keys['d'] || keys['D']) {
-        player.x += player.speedX;
+        applyForce(new Vector2D(player.speed, 0));
     }
     
-    // Jump - only if on ground
+    // Jump
     if ((keys['ArrowUp'] || keys['w'] || keys['W'] || keys[' ']) && player.onGround) {
-        player.velocityY = player.jumpPower;
+        player.vel.y = player.jumpForce;
         player.onGround = false;
     }
     
     // Apply gravity
-    player.velocityY += player.gravity;
+    applyForce(new Vector2D(0, player.gravity));
     
-    // Update vertical position
-    player.y += player.velocityY;
+    // Update velocity with acceleration
+    player.vel = player.vel.add(player.acc);
+    
+    // Apply friction to horizontal movement
+    player.vel.x *= 0.85;
+    
+    // Limit velocity to max speed
+    player.vel = player.vel.limit(player.maxSpeed);
+    
+    // Update position with velocity
+    player.pos = player.pos.add(player.vel);
+    
+    // Reset acceleration (forces are only applied once per frame)
+    player.acc = player.acc.mult(0);
     
     // Ground collision
-    if (player.y + player.size >= groundY) {
-        player.y = groundY - player.size;
-        player.velocityY = 0;
+    if (player.pos.y + player.size >= groundY) {
+        player.pos.y = groundY - player.size;
+        player.vel.y = 0;
         player.onGround = true;
     } else {
         player.onGround = false;
     }
     
-    // Keep player inside horizontal canvas bounds
-    if (player.x - player.size < 0) {
-        player.x = player.size;
+    // Horizontal boundaries
+    if (player.pos.x - player.size < 0) {
+        player.pos.x = player.size;
+        player.vel.x = 0;
     }
-    if (player.x + player.size > canvas.width) {
-        player.x = canvas.width - player.size;
+    if (player.pos.x + player.size > canvas.width) {
+        player.pos.x = canvas.width - player.size;
+        player.vel.x = 0;
     }
     
-    // Don't let player go above canvas
-    if (player.y - player.size < 0) {
-        player.y = player.size;
-        player.velocityY = 0;
+    // Top boundary
+    if (player.pos.y - player.size < 0) {
+        player.pos.y = player.size;
+        player.vel.y = 0;
     }
 }
 
 // Main game loop
 function gameLoop() {
-    // Update game state
+    // Update
     updatePlayer();
     
     // Clear canvas
@@ -103,9 +121,9 @@ function gameLoop() {
     // Draw player
     ctx.fillStyle = player.color;
     ctx.fillRect(
-        player.x - player.size, 
-        player.y - player.size, 
-        player.size * 2, 
+        player.pos.x - player.size,
+        player.pos.y - player.size,
+        player.size * 2,
         player.size * 2
     );
     
@@ -114,24 +132,25 @@ function gameLoop() {
     ctx.font = '20px monospace';
     ctx.fillText('Score: ' + score, 20, 30);
     
-    // Draw debug info
+    // Debug info
     ctx.fillStyle = '#888888';
     ctx.font = '12px monospace';
-    ctx.fillText('Velocity Y: ' + player.velocityY.toFixed(2), 20, 60);
-    ctx.fillText('On Ground: ' + player.onGround, 20, 80);
+    ctx.fillText('Velocity: (' + player.vel.x.toFixed(2) + ', ' + player.vel.y.toFixed(2) + ')', 20, 60);
+    ctx.fillText('Position: (' + player.pos.x.toFixed(0) + ', ' + player.pos.y.toFixed(0) + ')', 20, 80);
+    ctx.fillText('On Ground: ' + player.onGround, 20, 100);
     
-    // Draw controls hint
+    // Controls
     ctx.fillStyle = '#666666';
     ctx.font = '14px monospace';
     ctx.fillText('Controls: Arrow Keys/WASD to move, Space/W/Up to jump', 20, canvas.height - 20);
     
-    // Continue the loop
+    // Continue loop
     requestAnimationFrame(gameLoop);
 }
 
-// Start the game when page loads
+// Start game
 window.onload = function() {
-    console.log('Game initialized');
-    console.log('Controls: WASD or Arrow Keys to move, Space/W/Up to jump');
+    console.log('Game initialized with Vector2D physics');
+    console.log('Vector-based position, velocity, and acceleration');
     gameLoop();
 };

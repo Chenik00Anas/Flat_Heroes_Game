@@ -12,7 +12,7 @@ This is a Computer Science student project to create a simple platformer game us
 
 🚧 **Work in Progress**
 
-### Completed Features (Commit 3)
+### Completed Features (Commit 4)
 - ✅ Basic HTML5 canvas setup (800x600)
 - ✅ Game loop using `requestAnimationFrame()`
 - ✅ Player rendering (green square)
@@ -21,19 +21,22 @@ This is a Computer Science student project to create a simple platformer game us
 - ✅ Keyboard controls (Arrow Keys + WASD)
 - ✅ Left/right player movement
 - ✅ Collision detection with canvas edges
-- ✅ **Gravity implementation**
-- ✅ **Jump mechanics**
-- ✅ **Ground collision detection**
-- ✅ **Player falls and lands properly**
+- ✅ Gravity implementation
+- ✅ Jump mechanics
+- ✅ Ground collision detection
+- ✅ **Vector2D utility class created**
+- ✅ **Proper physics with position, velocity, and acceleration vectors**
+- ✅ **Force-based movement system**
+- ✅ **Friction applied to horizontal movement**
+- ✅ **Smoother, more realistic physics**
 
 ### To Do
-- [ ] Better physics with velocity and acceleration
 - [ ] Platforms to jump on
-- [ ] Enemy AI
+- [ ] Enemy AI with steering behaviors
 - [ ] Collision detection with enemies
 - [ ] Sound effects
-- [ ] Scoring system
-- [ ] Multiple levels/waves
+- [ ] Scoring system with waves
+- [ ] Visual effects (trails, particles)
 
 ## How to Run
 
@@ -50,7 +53,8 @@ flat-heroes-game/
 ├── css/
 │   └── style.css      # Game styling
 ├── js/
-│   └── game.js        # Game logic
+│   ├── Vector2D.js    # 2D vector utility class
+│   └── game.js        # Game logic with physics
 └── README.md          # This file
 ```
 
@@ -59,6 +63,7 @@ flat-heroes-game/
 - HTML5 Canvas API
 - Vanilla JavaScript (ES6)
 - CSS3
+- Vector mathematics for physics
 
 ## Controls
 
@@ -68,19 +73,29 @@ flat-heroes-game/
 
 ## Game Mechanics
 
-### Physics
-- **Gravity**: 0.5 (pulls player down)
-- **Jump Power**: -12 (initial upward velocity)
-- **Horizontal Speed**: 5 pixels per frame
-- Player can only jump when on the ground
+### Physics System
+- **Position, Velocity, Acceleration**: All use Vector2D objects
+- **Force-based movement**: Forces are applied and accumulated
+- **Gravity**: 0.6 constant downward force
+- **Jump Power**: -15 initial upward velocity
+- **Friction**: 0.85 multiplier on horizontal velocity
+- **Max Speed**: 6 units (prevents infinite acceleration)
 
+### Vector2D Class
+Provides mathematical operations for 2D physics:
+- `add(v)` - Vector addition
+- `sub(v)` - Vector subtraction
+- `mult(n)` - Scalar multiplication
+- `mag()` - Calculate magnitude
+- `normalize()` - Unit vector
+- `limit(max)` - Constrain magnitude
 
 ## Resources
 
 - [MDN Canvas API Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
-- [MDN Keyboard Events](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent)
+- [Nature of Code - Vectors](https://natureofcode.com/book/chapter-1-vectors/)
 - HTML5 Apps and Games course (w3cx.org)
-- Game physics tutorials for gravity implementation
+- Vector mathematics tutorials
 
 ## Author
 
@@ -91,4 +106,3 @@ Ubinet Master 2 - DS4H
 ## License
 
 This is a student project for educational purposes.
-
