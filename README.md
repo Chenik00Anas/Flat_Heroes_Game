@@ -12,30 +12,31 @@ This is a Computer Science student project to create a simple platformer game us
 
 🚧 **Work in Progress**
 
-### Completed Features (Commit 4)
+### Completed Features (Commit 5)
 - ✅ Basic HTML5 canvas setup (800x600)
 - ✅ Game loop using `requestAnimationFrame()`
 - ✅ Player rendering (green square)
 - ✅ Ground rendering
 - ✅ Basic UI display
 - ✅ Keyboard controls (Arrow Keys + WASD)
-- ✅ Left/right player movement
+- ✅ Player movement with physics
 - ✅ Collision detection with canvas edges
-- ✅ Gravity implementation
-- ✅ Jump mechanics
-- ✅ Ground collision detection
-- ✅ **Vector2D utility class created**
-- ✅ **Proper physics with position, velocity, and acceleration vectors**
-- ✅ **Force-based movement system**
-- ✅ **Friction applied to horizontal movement**
-- ✅ **Smoother, more realistic physics**
+- ✅ Gravity and jump mechanics
+- ✅ Vector2D utility class
+- ✅ Force-based physics system
+- ✅ **Enemy class created**
+- ✅ **AI steering behavior (seek)**
+- ✅ **Enemies chase the player**
+- ✅ **Collision detection between player and enemies**
+- ✅ **Game over state**
+- ✅ **Restart functionality (Press R)**
 
 ### To Do
-- [ ] Platforms to jump on
-- [ ] Enemy AI with steering behaviors
-- [ ] Collision detection with enemies
+- [ ] Platforms for more interesting gameplay
+- [ ] Multiple enemy types (wandering, fleeing)
+- [ ] Coins and scoring system
 - [ ] Sound effects
-- [ ] Scoring system with waves
+- [ ] Wave system with increasing difficulty
 - [ ] Visual effects (trails, particles)
 
 ## How to Run
@@ -44,6 +45,8 @@ This is a Computer Science student project to create a simple platformer game us
 2. Open `index.html` in a web browser
 3. Use **Arrow Keys** or **WASD** to move
 4. Press **Space**, **W**, or **Up Arrow** to jump
+5. Avoid the red diamond enemies!
+6. Press **R** to restart after game over
 
 ## Project Structure
 
@@ -54,22 +57,25 @@ flat-heroes-game/
 │   └── style.css      # Game styling
 ├── js/
 │   ├── Vector2D.js    # 2D vector utility class
-│   └── game.js        # Game logic with physics
+│   ├── Enemy.js       # Enemy class with AI
+│   └── game.js        # Main game logic
 └── README.md          # This file
 ```
 
 ## Technologies Used
 
 - HTML5 Canvas API
-- Vanilla JavaScript (ES6)
+- Vanilla JavaScript (ES6 Classes)
 - CSS3
 - Vector mathematics for physics
+- Steering behaviors for AI
 
 ## Controls
 
 - **Arrow Left / A** - Move left
 - **Arrow Right / D** - Move right
 - **Space / W / Up Arrow** - Jump
+- **R** - Restart game (after game over)
 
 ## Game Mechanics
 
@@ -79,23 +85,29 @@ flat-heroes-game/
 - **Gravity**: 0.6 constant downward force
 - **Jump Power**: -15 initial upward velocity
 - **Friction**: 0.85 multiplier on horizontal velocity
-- **Max Speed**: 6 units (prevents infinite acceleration)
+- **Max Speed**: 6 units
 
-### Vector2D Class
-Provides mathematical operations for 2D physics:
-- `add(v)` - Vector addition
-- `sub(v)` - Vector subtraction
-- `mult(n)` - Scalar multiplication
-- `mag()` - Calculate magnitude
-- `normalize()` - Unit vector
-- `limit(max)` - Constrain magnitude
+### Enemy AI (Steering Behaviors)
+Enemies use Reynolds steering behaviors for realistic movement:
+- **Seek**: Enemy calculates desired velocity toward player
+- **Steering Force**: Difference between desired and current velocity
+- **Max Force**: 0.1 (limits how quickly enemy can turn)
+- **Max Speed**: 2.5 (enemy movement speed)
+- **Wrapping**: Enemies wrap around screen edges
+
+### Collision Detection
+- Simple AABB (Axis-Aligned Bounding Box) collision
+- Checks overlap between player and enemy rectangles
+- Game over triggered on collision
+
 
 ## Resources
 
 - [MDN Canvas API Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
-- [Nature of Code - Vectors](https://natureofcode.com/book/chapter-1-vectors/)
+- [Nature of Code - Autonomous Agents](https://natureofcode.com/book/chapter-6-autonomous-agents/)
+- [Reynolds Steering Behaviors](https://www.red3d.com/cwr/steer/)
 - HTML5 Apps and Games course (w3cx.org)
-- Vector mathematics tutorials
+- Michel Buffa's course on Reactive AI and Steering Behaviors
 
 ## Author
 
