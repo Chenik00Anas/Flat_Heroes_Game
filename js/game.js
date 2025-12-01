@@ -1,4 +1,4 @@
-// Flat Heroes Game - Vector Physics Implementation
+// Flat Heroes Game - Enemy AI Implementation
 // Get canvas and context
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -7,30 +7,49 @@ const ctx = canvas.getContext('2d');
 canvas.width = 800;
 canvas.height = 600;
 
-// Player object with vector-based physics
+// Player object
 const player = {
-    pos: new Vector2D(400, 300),  // Position vector
-    vel: new Vector2D(0, 0),      // Velocity vector
-    acc: new Vector2D(0, 0),      // Acceleration vector
+    pos: new Vector2D(400, 300),
+    vel: new Vector2D(0, 0),
+    acc: new Vector2D(0, 0),
     size: 20,
     color: '#00ff88',
-    speed: 0.8,        // Acceleration force
-    maxSpeed: 6,       // Maximum velocity
-    jumpForce: -15,    // Jump strength
-    gravity: 0.6,      // Gravity force
+    speed: 0.8,
+    maxSpeed: 6,
+    jumpForce: -15,
+    gravity: 0.6,
     onGround: false
 };
 
 // Game variables
 let score = 0;
+let gameOver = false;
 const groundY = canvas.height - 50;
+
+// Enemies array
+const enemies = [];
+
+// Spawn initial enemies
+function spawnEnemies() {
+    for (let i = 0; i < 3; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * (canvas.height - 100);
+        enemies.push(new Enemy(x, y));
+    }
+}
 
 // Keyboard state
 const keys = {};
 
-// Keyboard event listeners
+// Event listeners
 window.addEventListener('keydown', function(e) {
     keys[e.key] = true;
+    
+    // Reset game on R key
+    if (e.key === 'r' && gameOver) {
+        resetGame();
+    }
+    
     if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
         e.preventDefault();
     }
@@ -40,14 +59,24 @@ window.addEventListener('keyup', function(e) {
     keys[e.key] = false;
 });
 
-// Apply force to player (F = ma)
+// Apply force to player
 function applyForce(force) {
     player.acc = player.acc.add(force);
 }
 
-// Update player physics
+// Check collision between two rectangles
+function checkCollision(rect1, rect2) {
+    return rect1.x < rect2.x + rect2.width &&
+           rect1.x + rect1.width > rect2.x &&
+           rect1.y < rect2.y + rect2.height &&
+           rect1.y + rect1.height > rect2.y;
+}
+
+// Update player
 function updatePlayer() {
-    // Horizontal movement - apply forces
+    if (gameOver) return;
+
+    // Movement
     if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
         applyForce(new Vector2D(-player.speed, 0));
     }
@@ -61,22 +90,14 @@ function updatePlayer() {
         player.onGround = false;
     }
     
-    // Apply gravity
+    // Gravity
     applyForce(new Vector2D(0, player.gravity));
     
-    // Update velocity with acceleration
+    // Update physics
     player.vel = player.vel.add(player.acc);
-    
-    // Apply friction to horizontal movement
     player.vel.x *= 0.85;
-    
-    // Limit velocity to max speed
     player.vel = player.vel.limit(player.maxSpeed);
-    
-    // Update position with velocity
     player.pos = player.pos.add(player.vel);
-    
-    // Reset acceleration (forces are only applied once per frame)
     player.acc = player.acc.mult(0);
     
     // Ground collision
@@ -88,7 +109,7 @@ function updatePlayer() {
         player.onGround = false;
     }
     
-    // Horizontal boundaries
+    // Boundaries
     if (player.pos.x - player.size < 0) {
         player.pos.x = player.size;
         player.vel.x = 0;
@@ -97,28 +118,44 @@ function updatePlayer() {
         player.pos.x = canvas.width - player.size;
         player.vel.x = 0;
     }
-    
-    // Top boundary
     if (player.pos.y - player.size < 0) {
         player.pos.y = player.size;
         player.vel.y = 0;
     }
 }
 
-// Main game loop
-function gameLoop() {
-    // Update
-    updatePlayer();
-    
+// Update enemies
+function updateEnemies() {
+    if (gameOver) return;
+
+    enemies.forEach(enemy => {
+        enemy.update(player.pos, canvas);
+        
+        // Check collision with player
+        const playerBounds = {
+            x: player.pos.x - player.size,
+            y: player.pos.y - player.size,
+            width: player.size * 2,
+            height: player.size * 2
+        };
+        
+        if (checkCollision(playerBounds, enemy.getBounds())) {
+            gameOver = true;
+        }
+    });
+}
+
+// Draw everything
+function draw() {
     // Clear canvas
     ctx.fillStyle = '#0a0a14';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw ground
+    // Ground
     ctx.fillStyle = '#222222';
     ctx.fillRect(0, groundY, canvas.width, 50);
     
-    // Draw player
+    // Player
     ctx.fillStyle = player.color;
     ctx.fillRect(
         player.pos.x - player.size,
@@ -127,30 +164,60 @@ function gameLoop() {
         player.size * 2
     );
     
-    // Draw UI
+    // Enemies
+    enemies.forEach(enemy => enemy.draw(ctx));
+    
+    // UI
     ctx.fillStyle = '#ffffff';
     ctx.font = '20px monospace';
     ctx.fillText('Score: ' + score, 20, 30);
-    
-    // Debug info
-    ctx.fillStyle = '#888888';
-    ctx.font = '12px monospace';
-    ctx.fillText('Velocity: (' + player.vel.x.toFixed(2) + ', ' + player.vel.y.toFixed(2) + ')', 20, 60);
-    ctx.fillText('Position: (' + player.pos.x.toFixed(0) + ', ' + player.pos.y.toFixed(0) + ')', 20, 80);
-    ctx.fillText('On Ground: ' + player.onGround, 20, 100);
+    ctx.fillText('Enemies: ' + enemies.length, 20, 60);
     
     // Controls
     ctx.fillStyle = '#666666';
     ctx.font = '14px monospace';
-    ctx.fillText('Controls: Arrow Keys/WASD to move, Space/W/Up to jump', 20, canvas.height - 20);
+    ctx.fillText('Controls: Arrow/WASD to move, Space to jump', 20, canvas.height - 20);
     
-    // Continue loop
+    // Game over screen
+    if (gameOver) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = '#ff0066';
+        ctx.font = '48px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '24px monospace';
+        ctx.fillText('Press R to Restart', canvas.width / 2, canvas.height / 2 + 50);
+        ctx.textAlign = 'left';
+    }
+}
+
+// Reset game
+function resetGame() {
+    player.pos = new Vector2D(400, 300);
+    player.vel = new Vector2D(0, 0);
+    player.acc = new Vector2D(0, 0);
+    enemies.length = 0;
+    spawnEnemies();
+    score = 0;
+    gameOver = false;
+}
+
+// Main game loop
+function gameLoop() {
+    updatePlayer();
+    updateEnemies();
+    draw();
     requestAnimationFrame(gameLoop);
 }
 
 // Start game
 window.onload = function() {
-    console.log('Game initialized with Vector2D physics');
-    console.log('Vector-based position, velocity, and acceleration');
+    console.log('Game initialized with Enemy AI');
+    console.log('Enemies use steering behavior to seek player');
+    spawnEnemies();
     gameLoop();
 };
