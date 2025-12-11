@@ -1,42 +1,21 @@
-// Flat Heroes Game - Enemy AI Implementation
-// Get canvas and context
+// Flat Heroes Game - Final Version
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Set canvas size
 canvas.width = 800;
 canvas.height = 600;
 
-// Player object
-const player = {
-    pos: new Vector2D(400, 300),
-    vel: new Vector2D(0, 0),
-    acc: new Vector2D(0, 0),
-    size: 20,
-    color: '#00ff88',
-    speed: 0.8,
-    maxSpeed: 6,
-    jumpForce: -15,
-    gravity: 0.6,
-    onGround: false
-};
-
-// Game variables
+// Game state
+let player;
+let enemies = [];
+let platforms = [];
+let coins = [];
 let score = 0;
+let coinsCollected = 0;
 let gameOver = false;
+let wave = 1;
+let coinSpawnTimer = 0;
 const groundY = canvas.height - 50;
-
-// Enemies array
-const enemies = [];
-
-// Spawn initial enemies
-function spawnEnemies() {
-    for (let i = 0; i < 3; i++) {
-        const x = Math.random() * canvas.width;
-        const y = Math.random() * (canvas.height - 100);
-        enemies.push(new Enemy(x, y));
-    }
-}
 
 // Keyboard state
 const keys = {};
@@ -45,7 +24,6 @@ const keys = {};
 window.addEventListener('keydown', function(e) {
     keys[e.key] = true;
     
-    // Reset game on R key
     if (e.key === 'r' && gameOver) {
         resetGame();
     }
@@ -59,12 +37,7 @@ window.addEventListener('keyup', function(e) {
     keys[e.key] = false;
 });
 
-// Apply force to player
-function applyForce(force) {
-    player.acc = player.acc.add(force);
-}
-
-// Check collision between two rectangles
+// Collision detection
 function checkCollision(rect1, rect2) {
     return rect1.x < rect2.x + rect2.width &&
            rect1.x + rect1.width > rect2.x &&
@@ -72,113 +45,125 @@ function checkCollision(rect1, rect2) {
            rect1.y + rect1.height > rect2.y;
 }
 
-// Update player
-function updatePlayer() {
-    if (gameOver) return;
+// Create platforms
+function createPlatforms() {
+    platforms = [
+        new Platform(150, 450, 120, 20),
+        new Platform(350, 380, 100, 20),
+        new Platform(550, 320, 140, 20),
+        new Platform(100, 280, 100, 20),
+        new Platform(300, 200, 120, 20),
+        new Platform(550, 150, 100, 20),
+        new Platform(650, 450, 100, 20),
+    ];
+}
 
-    // Movement
-    if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
-        applyForce(new Vector2D(-player.speed, 0));
-    }
-    if (keys['ArrowRight'] || keys['d'] || keys['D']) {
-        applyForce(new Vector2D(player.speed, 0));
-    }
+// Spawn enemies for current wave
+function spawnWave() {
+    enemies = [];
+    const numEnemies = 3 + wave;
     
-    // Jump
-    if ((keys['ArrowUp'] || keys['w'] || keys['W'] || keys[' ']) && player.onGround) {
-        player.vel.y = player.jumpForce;
-        player.onGround = false;
-    }
-    
-    // Gravity
-    applyForce(new Vector2D(0, player.gravity));
-    
-    // Update physics
-    player.vel = player.vel.add(player.acc);
-    player.vel.x *= 0.85;
-    player.vel = player.vel.limit(player.maxSpeed);
-    player.pos = player.pos.add(player.vel);
-    player.acc = player.acc.mult(0);
-    
-    // Ground collision
-    if (player.pos.y + player.size >= groundY) {
-        player.pos.y = groundY - player.size;
-        player.vel.y = 0;
-        player.onGround = true;
-    } else {
-        player.onGround = false;
-    }
-    
-    // Boundaries
-    if (player.pos.x - player.size < 0) {
-        player.pos.x = player.size;
-        player.vel.x = 0;
-    }
-    if (player.pos.x + player.size > canvas.width) {
-        player.pos.x = canvas.width - player.size;
-        player.vel.x = 0;
-    }
-    if (player.pos.y - player.size < 0) {
-        player.pos.y = player.size;
-        player.vel.y = 0;
+    for (let i = 0; i < numEnemies; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * (canvas.height - 100);
+        enemies.push(new Enemy(x, y));
     }
 }
 
-// Update enemies
-function updateEnemies() {
+// Update game
+function update() {
     if (gameOver) return;
 
+    // Update player
+    player.update(keys, canvas, platforms);
+
+    // Update enemies
     enemies.forEach(enemy => {
         enemy.update(player.pos, canvas);
         
         // Check collision with player
-        const playerBounds = {
-            x: player.pos.x - player.size,
-            y: player.pos.y - player.size,
-            width: player.size * 2,
-            height: player.size * 2
-        };
-        
-        if (checkCollision(playerBounds, enemy.getBounds())) {
+        if (checkCollision(player.getBounds(), enemy.getBounds())) {
             gameOver = true;
         }
     });
+
+    // Update coins
+    coins.forEach(coin => {
+        coin.update();
+        
+        if (!coin.collected && checkCollision(player.getBounds(), coin.getBounds())) {
+            coin.collected = true;
+            score += 50;
+            coinsCollected++;
+        }
+    });
+
+    // Remove collected coins
+    coins = coins.filter(coin => !coin.collected);
+
+    // Spawn new coins
+    coinSpawnTimer++;
+    if (coinSpawnTimer > 120 && coins.length < 5) {
+        coinSpawnTimer = 0;
+        
+        if (Math.random() > 0.3 && platforms.length > 0) {
+            const platform = platforms[Math.floor(Math.random() * platforms.length)];
+            const x = platform.x + Math.random() * platform.width;
+            const y = platform.y - 20;
+            coins.push(new Coin(x, y));
+        } else {
+            const x = Math.random() * canvas.width;
+            const y = groundY - 20;
+            coins.push(new Coin(x, y));
+        }
+    }
+
+    // Check wave complete
+    if (enemies.length === 0) {
+        wave++;
+        score += 100 * wave;
+        spawnWave();
+    }
 }
 
 // Draw everything
 function draw() {
-    // Clear canvas
-    ctx.fillStyle = '#0a0a14';
+    // Clear with fade effect
+    ctx.fillStyle = 'rgba(10, 10, 20, 0.3)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+
     // Ground
     ctx.fillStyle = '#222222';
     ctx.fillRect(0, groundY, canvas.width, 50);
-    
+
+    // Platforms
+    platforms.forEach(platform => platform.draw(ctx));
+
+    // Coins
+    coins.forEach(coin => coin.draw(ctx));
+
     // Player
-    ctx.fillStyle = player.color;
-    ctx.fillRect(
-        player.pos.x - player.size,
-        player.pos.y - player.size,
-        player.size * 2,
-        player.size * 2
-    );
-    
+    player.draw(ctx);
+
     // Enemies
     enemies.forEach(enemy => enemy.draw(ctx));
-    
+
     // UI
     ctx.fillStyle = '#ffffff';
     ctx.font = '20px monospace';
-    ctx.fillText('Score: ' + score, 20, 30);
-    ctx.fillText('Enemies: ' + enemies.length, 20, 60);
+    ctx.fillText('Wave: ' + wave, 20, 30);
+    ctx.fillText('Score: ' + score, 20, 60);
+    ctx.fillText('Enemies: ' + enemies.length, 20, 90);
     
+    ctx.fillStyle = '#ffd700';
+    ctx.fillText('★ ' + coinsCollected, 20, 120);
+
     // Controls
     ctx.fillStyle = '#666666';
     ctx.font = '14px monospace';
-    ctx.fillText('Controls: Arrow/WASD to move, Space to jump', 20, canvas.height - 20);
-    
-    // Game over screen
+    ctx.fillText('WASD/Arrows: Move | Space: Jump | Shift: Dash', 20, canvas.height - 20);
+
+    // Game over
     if (gameOver) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -186,38 +171,42 @@ function draw() {
         ctx.fillStyle = '#ff0066';
         ctx.font = '48px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 20);
         
         ctx.fillStyle = '#ffffff';
         ctx.font = '24px monospace';
-        ctx.fillText('Press R to Restart', canvas.width / 2, canvas.height / 2 + 50);
+        ctx.fillText('Final Score: ' + score, canvas.width / 2, canvas.height / 2 + 30);
+        ctx.fillText('Coins: ' + coinsCollected, canvas.width / 2, canvas.height / 2 + 60);
+        ctx.fillText('Press R to Restart', canvas.width / 2, canvas.height / 2 + 90);
         ctx.textAlign = 'left';
     }
 }
 
-// Reset game
-function resetGame() {
-    player.pos = new Vector2D(400, 300);
-    player.vel = new Vector2D(0, 0);
-    player.acc = new Vector2D(0, 0);
-    enemies.length = 0;
-    spawnEnemies();
-    score = 0;
-    gameOver = false;
-}
-
-// Main game loop
+// Game loop
 function gameLoop() {
-    updatePlayer();
-    updateEnemies();
+    update();
     draw();
     requestAnimationFrame(gameLoop);
 }
 
-// Start game
+// Reset game
+function resetGame() {
+    player = new Player(canvas.width / 2, canvas.height - 100);
+    enemies = [];
+    coins = [];
+    score = 0;
+    coinsCollected = 0;
+    gameOver = false;
+    wave = 1;
+    coinSpawnTimer = 0;
+    createPlatforms();
+    spawnWave();
+}
+
+// Initialize
 window.onload = function() {
-    console.log('Game initialized with Enemy AI');
-    console.log('Enemies use steering behavior to seek player');
-    spawnEnemies();
+    console.log('Flat Heroes Game - Final Version');
+    console.log('Features: Double Jump, Coyote Time, Dash, Platforms, Coins, Waves');
+    resetGame();
     gameLoop();
 };

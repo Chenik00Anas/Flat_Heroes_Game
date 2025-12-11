@@ -3,18 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flat Heroes Game</title>
+    <title>Flat Heroes Game - Final Version</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
         <h1>Flat Heroes Game</h1>
         <canvas id="gameCanvas"></canvas>
-        <p class="info">Avoid the enemies! Use WASD or Arrow Keys</p>
+        <p class="info">Double jump! Collect coins! Avoid enemies!</p>
     </div>
 
-    <!-- Load scripts in order -->
+    <!-- Load all game classes -->
     <script src="js/Vector2D.js"></script>
+    <script src="js/Platform.js"></script>
+    <script src="js/Coin.js"></script>
+    <script src="js/Player.js"></script>
     <script src="js/Enemy.js"></script>
     <script src="js/game.js"></script>
 </body>
